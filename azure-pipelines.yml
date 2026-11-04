@@ -1,0 +1,54 @@
+
+trigger:
+  - main
+
+pr:
+  - main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  pythonVersion: '3.11'
+
+steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(pythonVersion)'
+    displayName: 'Set up Python'
+
+  - script: |
+      python -m pip install --upgrade pip
+      python -m pip install -r requirements.txt
+      python -m playwright install chromium
+    displayName: 'Install dependencies and Chromium'
+
+  - script: |
+      python -m pytest -n 2 --html=reports/report.html --self-contained-html --junitxml=reports/junit-results.xml
+    displayName: 'Run Playwright tests'
+    continueOnError: true
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: 'reports/junit-results.xml'
+      failTaskOnFailedTests: true
+      testRunTitle: 'Playwright Automation Tests'
+    condition: succeededOrFailed()
+    displayName: 'Publish JUnit results'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: 'reports'
+      ArtifactName: 'TestReports'
+      publishLocation: 'Container'
+    condition: succeededOrFailed()
+    displayName: 'Publish HTML and XML reports'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: 'test-results'
+      ArtifactName: 'PlaywrightFailureArtifacts'
+      publishLocation: 'Container'
+    condition: succeededOrFailed()
+    displayName: 'Publish screenshots, videos and traces'
