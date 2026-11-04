@@ -1,7 +1,9 @@
+
 import pytest
 from pathlib import Path
 from playwright.sync_api import expect
 
+from config import USERNAME, PASSWORD
 from pages.login_page import LoginPage
 from pages.inventory_page import InventoryPage
 from pages.cart_page import CartPage
@@ -15,12 +17,12 @@ def app_url(pytestconfig):
 
 @pytest.fixture(scope="session")
 def username():
-    return "standard_user"
+    return USERNAME
 
 
 @pytest.fixture(scope="session")
 def password():
-    return "secret_sauce"
+    return PASSWORD
 
 
 @pytest.fixture(scope="session")
@@ -37,7 +39,7 @@ def auth_state(browser, app_url):
     login_page = LoginPage(page)
 
     login_page.open(app_url)
-    login_page.login("standard_user", "secret_sauce")
+    login_page.login(USERNAME, PASSWORD)
 
     expect(page).to_have_url(f"{app_url}/inventory.html")
 
@@ -46,8 +48,6 @@ def auth_state(browser, app_url):
     context.close()
 
     return str(auth_file)
-
-
 
 
 @pytest.fixture
@@ -60,6 +60,8 @@ def browser_context_args(browser_context_args, request, auth_state):
         **browser_context_args,
         "storage_state": auth_state
     }
+
+
 @pytest.fixture
 def login_page(page):
     return LoginPage(page)
