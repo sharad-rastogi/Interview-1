@@ -21,12 +21,13 @@ steps:
       python -m pip install --upgrade pip
       python -m pip install -r requirements.txt
       python -m playwright install chromium
-    displayName: 'Install dependencies and Chromium'
+      if not exist reports mkdir reports
+      if not exist test-results mkdir test-results
+    displayName: 'Install dependencies and prepare directories'
 
   - script: |
       python -m pytest -n 2 --html=reports/report.html --self-contained-html --junitxml=reports/junit-results.xml
     displayName: 'Run Playwright tests'
-    continueOnError: true
 
   - task: PublishTestResults@2
     inputs:
@@ -51,4 +52,4 @@ steps:
       ArtifactName: 'PlaywrightFailureArtifacts'
       publishLocation: 'Container'
     condition: succeededOrFailed()
-    displayName: 'Publish screenshots, videos and traces'
+    displayName: 'Publish Playwright artifacts'
